@@ -16,6 +16,12 @@ module Micronaut
 
     # Glob pattern to match example files. (default is 'examples/**/*_example.rb')
     attr_accessor :pattern
+    
+    # Explicitly define the list of spec files to be included in a
+    # spec.  +example_files+ is expected to be an array of file names (a
+    # FileList is acceptable).  If both +pattern+ and +example_files+ are
+    # used, then the list of example files is the union of the two.
+    attr_accessor :example_files
 
     # Array of commandline options to pass to ruby. Defaults to [].
     attr_accessor :ruby_opts
@@ -45,7 +51,7 @@ module Micronaut
       @fail_on_error = true
 
       yield self if block_given?
-      @pattern ||= 'examples/**/*_example.rb'
+      @pattern = 'examples/**/*_example.rb' if pattern.nil? && example_files.nil?
       define
     end
 
@@ -74,11 +80,12 @@ module Micronaut
 
       self
     end
-
+    
     def examples_to_run # :nodoc:
-      FileList[ pattern ].to_a
+      result = []
+      result += example_files.to_a if example_files
+      result += FileList[ pattern ].to_a if pattern
+      FileList[result].to_a
     end
-
   end
-
 end
